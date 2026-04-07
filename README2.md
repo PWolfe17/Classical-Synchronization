@@ -1,5 +1,9 @@
 Names: Parker Wolfe and Vittoria Quaranta
 Run: first navigate to the directory, then in the terminal type make and enter. then type ./sleepingStylistMon and enter. it will run 
-Signal and Continue: The program follows signal-and-continue discipline because after a thread signals a condition variable, it continues executing before the awakened thread runs. The awakened thread only resumes execution after the signaling thread exits the monitor or releases the lock.
+Signal and Continue: 
+- Stylist sleeps when salon is empty.
+- Waiting counter builds up to 6 chairs.
+- When full, customers correctly go shopping and retry.
+- All 75 customers eventually get a haircut with no starvation.
 Time: 7-8 hours for part 2 
 Challenge: It was challenging, 4/5
