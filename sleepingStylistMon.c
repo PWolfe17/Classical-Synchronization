@@ -1,20 +1,14 @@
-// ==== sleepingStylistMon.c ====
-// Sleeping Stylist solved with a custom monitor (signal-and-continue).
-// Uses monitor.c / monitor.h for all synchronisation.
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include "monitor.h"
 
 #define NUM_CUSTOMERS 75
-#define DELAY         500000  // Adjust for steady customer stream
+#define DELAY         500000  
 
-// ---- Forward declarations ----
 void *stylist_thread(void *arg);
 void *customer_thread(void *arg);
 
-// -------------------------------------------------------
 int main(void)
 {
     pthread_t stylist_tid;
@@ -23,8 +17,8 @@ int main(void)
 
     mon_init();
 
-    printf("=== Sleeping Stylist (Monitor / signal-and-continue) ===\n");
-    printf("Customers: %d  |  Chairs: %d\n\n", NUM_CUSTOMERS, 6);
+    printf("Stylist Monitors\n");
+    printf("Customers: %d and Chairs: %d\n\n", NUM_CUSTOMERS, 6);
 
     pthread_create(&stylist_tid, NULL, stylist_thread, NULL);
 
@@ -39,12 +33,12 @@ int main(void)
     pthread_cancel(stylist_tid);
     pthread_join(stylist_tid, NULL);
 
-    printf("\n=== All %d customers have received haircuts. Done. ===\n",
+    printf("\n%d Customers have recieved haircuts. All done\n",
            NUM_CUSTOMERS);
     return 0;
 }
 
-// -------------------------------------------------------
+
 void *stylist_thread(void *arg)
 {
     (void)arg;
@@ -52,13 +46,12 @@ void *stylist_thread(void *arg)
 
     while (1) {
         mon_debugPrint();
-        mon_checkCustomer();                    // sleep if no customer; take next
-        for (j = 0; j < DELAY; j++);           // cut hair
+        mon_checkCustomer();
+        for (j = 0; j < DELAY; j++);           
     }
     return NULL;
 }
 
-// -------------------------------------------------------
 void *customer_thread(void *arg)
 {
     int id = *(int *)arg;
@@ -66,16 +59,14 @@ void *customer_thread(void *arg)
 
     while (1) {
         mon_debugPrint();
-        printf("[CUSTOMER %d] Trying to enter salon...\n", id);
+        printf("-customer%d- trying to get in\n", id);
 
         if (mon_checkStylist()) {
-            // Got a seat and the stylist took us
-            printf("[CUSTOMER %d] Haircut complete!\n", id);
+            printf("-customer%d- done\n", id);
             break;
         }
 
-        // Salon was full — go shopping
-        printf("[CUSTOMER %d] Going shopping...\n", id);
+        printf("-customer-%d- customer will enter \n", id);
         for (j = 0; j < DELAY; j++);
     }
     return NULL;
