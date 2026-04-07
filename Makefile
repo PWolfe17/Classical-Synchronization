@@ -2,12 +2,15 @@ CC      = gcc
 CFLAGS  = -Wall -Wextra -g
 LDFLAGS = -lpthread
 
-TARGET  = sleepingStylistSem
+TARGET  = sleepingStylistMon
 
 all: $(TARGET)
 
-$(TARGET): sleepingStylistSem.c
-	$(CC) $(CFLAGS) -o $(TARGET) sleepingStylistSem.c $(LDFLAGS)
+monitor.o: monitor.c monitor.h
+	$(CC) $(CFLAGS) -c monitor.c
+
+$(TARGET): sleepingStylistMon.c monitor.o monitor.h
+	$(CC) $(CFLAGS) -o $(TARGET) sleepingStylistMon.c monitor.o $(LDFLAGS)
 
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) monitor.o
