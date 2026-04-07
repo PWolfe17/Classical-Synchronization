@@ -1,7 +1,3 @@
-// ==== sleepingStylistSem.c ====
-// Sleeping Stylist problem solved using POSIX semaphores.
-// 75 customer threads, 1 stylist thread, 6 waiting chairs.
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -9,23 +5,22 @@
 
 #define CHAIRS      6
 #define NUM_CUSTOMERS 75
-#define DELAY       500000  // Adjust to get steady stream of customers
+#define DELAY       500000  
 
-// ---- Semaphores and shared state ----
-sem_t mutex;       // protects 'waiting' counter
-sem_t customers;   // signals stylist that a customer is ready
-sem_t stylist;     // signals customer that stylist is ready
 
-int waiting = 0;           // customers currently in waiting chairs
-int haircuts_given = 0;    // total completed haircuts
-int salon_full_count = 0;  // times a customer found the salon full
-int stylist_sleep_count = 0; // times stylist went to sleep
+sem_t mutex;       
+sem_t customers;   
+sem_t stylist;     
 
-// ---- Forward declarations ----
+int waiting = 0;           
+int haircuts_given = 0;    
+int salon_full_count = 0;  
+int stylist_sleep_count = 0; 
+
+
 void *stylist_thread(void *arg);
 void *customer_thread(void *arg);
 
-// -------------------------------------------------------
 int main(void)
 {
     pthread_t stylist_tid;
@@ -36,8 +31,8 @@ int main(void)
     sem_init(&customers, 0, 0);
     sem_init(&stylist,   0, 0);
 
-    printf("=== Sleeping Stylist (Semaphores) ===\n");
-    printf("Customers: %d  |  Chairs: %d\n\n", NUM_CUSTOMERS, CHAIRS);
+    printf("Stylist Semaphores\n");
+    printf("Customers: %d and Chairs: %d\n\n", NUM_CUSTOMERS, CHAIRS);
 
     pthread_create(&stylist_tid, NULL, stylist_thread, NULL);
 
@@ -53,7 +48,7 @@ int main(void)
     pthread_cancel(stylist_tid);
     pthread_join(stylist_tid, NULL);
 
-    printf("\n=== All %d customers have received haircuts. Done. ===\n",
+    printf("\n%d customers have gotten their hair cut. All done\n",
            NUM_CUSTOMERS);
 
     sem_destroy(&mutex);
@@ -62,40 +57,33 @@ int main(void)
     return 0;
 }
 
-// -------------------------------------------------------
-// Stylist thread: sleeps when no customers; wakes up to cut hair.
 void *stylist_thread(void *arg)
 {
     (void)arg;
     int j;
 
     while (1) {
-        // Block until a customer signals
-        sem_wait(&customers);       // wait for a customer
+        sem_wait(&customers);  // wait for a customer
 
         sem_wait(&mutex);
         waiting--;
-        printf("[STYLIST] Taking a customer. Waiting now: %d\n", waiting);
+        printf("-stylist- is getting a customer waiting now: %d\n", waiting);
         if (waiting == 0) {
             stylist_sleep_count++;
-            printf("[STYLIST] No more customers waiting — will sleep after this haircut.\n");
+            printf("-stylist- No more customers waiting\n");
         }
-        sem_post(&stylist);         // signal customer: stylist ready
+        sem_post(&stylist);        
         sem_post(&mutex);
-
-        // Cut hair
         for (j = 0; j < DELAY; j++);
 
         sem_wait(&mutex);
         haircuts_given++;
-        printf("[STYLIST] Haircut done. Total haircuts given: %d\n", haircuts_given);
+        printf("-stylist- Haircut done w/ total haircuts given: %d\n", haircuts_given);
         sem_post(&mutex);
     }
     return NULL;
 }
 
-// -------------------------------------------------------
-// Customer thread: tries to get a haircut; leaves to shop if salon full.
 void *customer_thread(void *arg)
 {
     int id = *(int *)arg;
@@ -105,25 +93,23 @@ void *customer_thread(void *arg)
         sem_wait(&mutex);
 
         if (waiting < CHAIRS) {
-            // Seat available — take a chair
             waiting++;
-            printf("[CUSTOMER %d] Entered salon. Waiting: %d/%d\n",
+            printf("-customer%d- in the salon now waiting: %d/%d\n",
                    id, waiting, CHAIRS);
-            sem_post(&customers);   // wake up stylist
+            sem_post(&customers);   // get stylist ready
             sem_post(&mutex);
 
-            sem_wait(&stylist);     // wait until stylist is ready for me
-            printf("[CUSTOMER %d] Getting haircut!\n", id);
-            break;                  // haircut obtained — exit loop
+            sem_wait(&stylist);     
+            printf("-customer%d- is getting a haircut\n", id);
+            break;                 
 
         } else {
-            // Salon full — leave and come back later
             salon_full_count++;
-            printf("[CUSTOMER %d] Salon FULL (%d waiting). Going shopping. "
+            printf("-customer %d- salon is full (%d waiting)"
                    "(Full count: %d)\n", id, waiting, salon_full_count);
             sem_post(&mutex);
 
-            for (j = 0; j < DELAY; j++);   // go shopping
+            for (j = 0; j < DELAY; j++);
         }
     }
     return NULL;
