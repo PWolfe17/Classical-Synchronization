@@ -15,7 +15,7 @@ int main(void)
     pthread_t customer_tids[NUM_CUSTOMERS];
     int ids[NUM_CUSTOMERS];
 
-    mon_init();
+    initialize_monitor();
 
     printf("Stylist Monitors\n");
     printf("Customers: %d and Chairs: %d\n\n", NUM_CUSTOMERS, 6);
